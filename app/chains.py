@@ -9,7 +9,7 @@ from langchain_core.exceptions import OutputParserException
 from dotenv import load_dotenv
 
 load_dotenv()
-
+GROQ_API_KEY=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
 
 class Chain:
     def __init__(self):
