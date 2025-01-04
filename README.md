@@ -19,7 +19,7 @@ Applying for jobs often requires customizing resumes to align with the specific 
 5. Streamlit Deployment: Provides an interactive web interface for uploading job descriptions and viewing results.
 
 ## Live Demo
-
+https://resume-xpert.streamlit.app/
 ## Technology Stack🤖
 
 LangChain🦜: For NLP-based document processing and skill extraction.
