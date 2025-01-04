@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
+import streamlit as st
 class Chain:
     def __init__(self):
         # Access the API key securely from Streamlit's secrets
