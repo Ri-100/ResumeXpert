@@ -14,7 +14,7 @@ def main():
     # User input for resume skills
     resume_skills = st.sidebar.text_area(
         "Enter Your Skills (comma-separated):",
-        value="Python, C++, SQL, Machine Learning, Deep Learning, Power BI"
+        value="-Add your skills-"
     )
     resume_skills = [skill.strip() for skill in resume_skills.split(",")]
 
