@@ -2,7 +2,9 @@ import streamlit as st
 from main import generate_ats_score, generate_cold_mail
 from chains import Chain
 from portfolio import Portfolio
-
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 def main():
     st.title("📃 ResumeXpert")
     st.sidebar.title("Navigation")
