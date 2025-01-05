@@ -19,12 +19,14 @@ class Chain:
 
     def extract_jobs(self, cleaned_text):
         prompt_extract = PromptTemplate.from_template(
-            """
+                        """
             ### SCRAPED TEXT FROM WEBSITE:
             {page_data}
             ### INSTRUCTION:
-            Extract job postings in JSON format with keys: role, experience, skills, description.
-            Only return valid JSON. No additional text.
+            The scraped text is from the career's page of a website.
+            Your job is to extract the job postings and return them in JSON format containing the following keys: `role`, `experience`, `skills`, and `description`.
+            Only return the valid JSON.
+            ### VALID JSON (NO PREAMBLE):
             """
         )
         chain_extract = prompt_extract | self.llm
@@ -46,8 +48,11 @@ class Chain:
         prompt_email = PromptTemplate.from_template(
             """
             ### INSTRUCTION:
-            Write a cold email tailored to the job requirements, showcasing relevant skills and portfolio links.
-            Use the following portfolio link: https://ri-100.github.io/portfolio/.
+            You are Rishav Shukla, a final-year Computer Science student specializing in Data Science and seeking job opportunities.
+            Write a cold email tailored to the job requirements.
+            Highlight relevant skills, projects, and experiences aligning with the job, and present yourself as an eager candidate ready to contribute and grow.
+            Use the most relevant resume link   provided that macthes with the job role: {link_list}.
+            ### EMAIL (NO PREAMBLE):
             """
         )
         chain_email = prompt_email | self.llm
