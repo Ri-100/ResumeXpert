@@ -42,9 +42,11 @@ streamlit run app.py
 ## Structure 
 
 
-![workflow_with_ats](https://github.com/user-attachments/assets/979171e3-4c63-4fd6-9ca7-1ceacaf3be50)
+![workflow_with_ats](https://github.com/user-attachments/assets/092ba36a-fe35-45e6-970f-69556a4ca0c0)
+
+
 
 ## Interface
 
-![Screenshot 2025-01-04 211531](https://github.com/user-attachments/assets/77889a7b-d044-4615-abfc-f7b1aac10fc3)
+![Screenshot 2025-01-04 211531](https://github.com/user-attachments/assets/b14bf6a9-0f89-48ca-bb0b-1ec5bb85deef)
 
