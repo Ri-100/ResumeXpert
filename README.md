@@ -20,7 +20,7 @@ Applying for jobs often requires customizing resumes to align with the specific 
 5. Streamlit Deployment: Provides an interactive web interface for uploading job descriptions and viewing results.
 
 ## Demo  
-A live demonstration of the project can be accessed [here](https://resume-xpert.streamlit.app/)).  
+A live demonstration of the project can be accessed [here](https://resume-xpert.streamlit.app/).  
 
 ## Technology Stack🤖
 
