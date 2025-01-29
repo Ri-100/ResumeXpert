@@ -8,9 +8,8 @@ class Portfolio:
     def __init__(self, file_path="app/resource/my_portfolio.csv"):
         self.file_path = file_path
         
-        # Clean up existing vectorstore if exists
-        if os.path.exists("vectorstore"):
-            shutil.rmtree("vectorstore")
+        # Ensure vectorstore directory exists with proper permissions
+        os.makedirs("vectorstore", exist_ok=True)
         
         try:
             self.data = pd.read_csv(file_path)
@@ -21,23 +20,35 @@ class Portfolio:
             print(f"Error reading the CSV file: {e}")
             self.data = pd.DataFrame()
         
-        # Initialize ChromaDB with a clean database
-        self.chroma_client = chromadb.PersistentClient(path="vectorstore")
-        self.collection = self.chroma_client.create_collection(name="portfolio")
+        # Initialize ChromaDB with settings
+        settings = chromadb.Settings(
+            chroma_db_impl="duckdb+parquet",
+            persist_directory="vectorstore",
+            anonymized_telemetry=False
+        )
+        
+        # Initialize the client with settings
+        self.chroma_client = chromadb.PersistentClient(
+            path="vectorstore",
+            settings=settings
+        )
+
+        # Create or get collection
+        try:
+            self.collection = self.chroma_client.get_collection(name="portfolio")
+        except:
+            self.collection = self.chroma_client.create_collection(name="portfolio")
 
     def load_portfolio(self):
-        # Clear existing data
-        try:
-            self.collection.delete(where={})
-        except:
-            pass
-            
         # Load new data
         for _, row in self.data.iterrows():
             try:
+                # Convert techstack to string if it's not already
+                techstack = str(row["Techstack"]) if not isinstance(row["Techstack"], str) else row["Techstack"]
+                
                 self.collection.add(
-                    documents=[str(row["Techstack"])],
-                    metadatas=[{"links": row["Links"]}],  # Ensure metadatas is a list of dicts
+                    documents=[techstack],
+                    metadatas=[{"links": str(row["Links"])}],  # Ensure links is string
                     ids=[str(uuid.uuid4())]
                 )
             except Exception as e:
