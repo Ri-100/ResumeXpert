@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 import streamlit as st
 
 load_dotenv()
+import shutil
+if os.path.exists('vectorstore'):
+    shutil.rmtree('vectorstore')  # Delete the database
 
 class Portfolio:
     def __init__(self, file_path="app/resource/my_portfolio.csv"):
