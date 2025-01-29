@@ -1,89 +1,61 @@
 import os
-import sys
-import uuid
-import pandas as pd
-import chromadb
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.exceptions import OutputParserException
 from dotenv import load_dotenv
-import streamlit as st
 
 load_dotenv()
-# import shutil
-# if os.path.exists('vectorstore'):
-#     shutil.rmtree('vectorstore')  # Delete the database
-
-class Portfolio:
-    def __init__(self, file_path="app/resource/my_portfolio.csv"):
-        self.file_path = file_path
-        self.data = pd.read_csv(file_path)
-        self.chroma_client = chromadb.PersistentClient('vectorstore')
-        self.collection = self.chroma_client.get_or_create_collection(name="portfolio")
-
-    def load_portfolio(self):
-        if not self.collection.count():
-            for _, row in self.data.iterrows():
-                self.collection.add(documents=row["Techstack"],
-                                    metadatas={"links": row["Links"]},
-                                    ids=[str(uuid.uuid4())])
-
-    def query_links(self, skills):
-        return self.collection.query(query_texts=skills, n_results=2).get('metadatas', [])
 
 class Chain:
     def __init__(self):
-        # Initialize ChatGroq with Groq API Key and Model details
-        self.llm = ChatGroq(
-            temperature=0,
-            groq_api_key=st.secrets["GROQ_API_KEY"],
-            model_name="llama-3.3-70b-versatile"
-        )
+        self.llm = ChatGroq(temperature=0, groq_api_key=os.getenv("GROQ_API_KEY"), model_name="llama-3.3-70b-versatile")
 
     def extract_jobs(self, cleaned_text):
-        # Template to extract job details
         prompt_extract = PromptTemplate.from_template(
             """
             ### SCRAPED TEXT FROM WEBSITE:
             {page_data}
             ### INSTRUCTION:
             The scraped text is from the career's page of a website.
-            Your job is to extract the job postings and return them in JSON format containing the following keys: `role`, `experience`, `skills`, and `description`.
+            Your job is to extract the job postings and return them in JSON format containing the following keys: `role`, `experience`, `skills` and `description`.
             Only return the valid JSON.
             ### VALID JSON (NO PREAMBLE):
             """
         )
         chain_extract = prompt_extract | self.llm
+        res = chain_extract.invoke(input={"page_data": cleaned_text})
         try:
-            # Get the extracted response in JSON format
-            res = chain_extract.invoke(input={"page_data": cleaned_text})
             json_parser = JsonOutputParser()
-            return json_parser.parse(res.content)
-        except OutputParserException as e:
-            raise Exception(f"Error extracting jobs: {str(e)}")
-
-    def calculate_match_score(self, job_skills, resume_skills):
-        # Calculate match score based on skill overlap between job and resume
-        job_skills_set = set(skill.lower() for skill in job_skills)
-        resume_skills_set = set(skill.lower() for skill in resume_skills)
-        common_skills = job_skills_set.intersection(resume_skills_set)
-        total_skills = job_skills_set.union(resume_skills_set)
-        return (len(common_skills) / len(total_skills)) * 100 if total_skills else 0
+            res = json_parser.parse(res.content)
+        except OutputParserException:
+            raise OutputParserException("Context too big. Unable to parse jobs.")
+        return res if isinstance(res, list) else [res]
 
     def write_mail(self, job, links):
-        # Generate personalized cold email for job application
         prompt_email = PromptTemplate.from_template(
             """
+            ### JOB DESCRIPTION:
+            {job_description}
+
             ### INSTRUCTION:
-            You are Rishav Shukla, a final-year Computer Science student specializing in Data Science and seeking job opportunities.
-            Write a cold email tailored to the job requirements.
-            Highlight relevant skills, projects, and experiences aligning with the job, and present yourself as an eager candidate ready to contribute and grow.
-            Use the most relevant resume link provided that matches with the job role: {link_list}.
+            You are Mohan, a business development executive at AtliQ. AtliQ is an AI & Software Consulting company dedicated to facilitating
+            the seamless integration of business processes through automated tools. 
+            Over our experience, we have empowered numerous enterprises with tailored solutions, fostering scalability, 
+            process optimization, cost reduction, and heightened overall efficiency. 
+            Your job is to write a cold email to the client regarding the job mentioned above describing the capability of AtliQ 
+            in fulfilling their needs.
+            Also add the most relevant ones from the following links to showcase Atliq's portfolio: {link_list}
+            Remember you are Mohan, BDE at AtliQ. 
+            Do not provide a preamble.
             ### EMAIL (NO PREAMBLE):
+
             """
         )
         chain_email = prompt_email | self.llm
-        return chain_email.invoke({"job_description": str(job), "link_list": links}).content
+        res = chain_email.invoke({"job_description": str(job), "link_list": links})
+        return res.content
 
+if __name__ == "__main__":
+    print(os.getenv("GROQ_API_KEY"))
 
