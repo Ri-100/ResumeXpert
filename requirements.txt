@@ -8,3 +8,4 @@ chromadb==0.5.3
 streamlit==1.41.0
 pandas==2.0.2
 python-dotenv==1.0.0
+duckdb=0.8.1
