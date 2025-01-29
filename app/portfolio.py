@@ -1,10 +1,17 @@
 import pandas as pd
 import chromadb
 import uuid
+import shutil
+import os
 
 class Portfolio:
     def __init__(self, file_path="app/resource/my_portfolio.csv"):
         self.file_path = file_path
+        
+        # Clean up existing vectorstore if exists
+        if os.path.exists("vectorstore"):
+            shutil.rmtree("vectorstore")
+        
         try:
             self.data = pd.read_csv(file_path)
         except FileNotFoundError:
@@ -14,19 +21,40 @@ class Portfolio:
             print(f"Error reading the CSV file: {e}")
             self.data = pd.DataFrame()
         
-        self.chroma_client = chromadb.PersistentClient(path="vectorstore")  # Ensure the correct path for persistence
-        self.collection = self.chroma_client.get_or_create_collection(name="portfolio")
+        # Initialize ChromaDB with a clean database
+        self.chroma_client = chromadb.PersistentClient(path="vectorstore")
+        self.collection = self.chroma_client.create_collection(name="portfolio")
 
     def load_portfolio(self):
-        if self.collection.count() == 0:  # Only add data if the collection is empty
-            for _, row in self.data.iterrows():
+        # Clear existing data
+        try:
+            self.collection.delete(where={})
+        except:
+            pass
+            
+        # Load new data
+        for _, row in self.data.iterrows():
+            try:
                 self.collection.add(
-                    documents=[str(row["Techstack"])],  # Ensure it's a list of strings
-                    metadatas={"links": row["Links"]},  # Links as metadata
+                    documents=[str(row["Techstack"])],
+                    metadatas=[{"links": row["Links"]}],  # Ensure metadatas is a list of dicts
                     ids=[str(uuid.uuid4())]
                 )
+            except Exception as e:
+                print(f"Error adding document: {e}")
 
     def query_links(self, skills):
-        results = self.collection.query(query_texts=[skills], n_results=2)
-        return results.get('metadatas', [])  # Returns the links metadata
-
+        try:
+            if isinstance(skills, list):
+                query_text = " ".join(skills)
+            else:
+                query_text = str(skills)
+                
+            results = self.collection.query(
+                query_texts=[query_text],
+                n_results=2
+            )
+            return results.get('metadatas', [])
+        except Exception as e:
+            print(f"Error querying links: {e}")
+            return []
