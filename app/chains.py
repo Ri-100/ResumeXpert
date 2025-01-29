@@ -14,7 +14,7 @@ class Chain:
         self.llm = ChatGroq(
             temperature=0,
             groq_api_key=st.secrets["GROQ_API_KEY"],
-            model_name="llama-3.3-70b-versatile"
+            model_name="llama-3.1-8b-instant"
         )
 
     def extract_jobs(self, cleaned_text):
